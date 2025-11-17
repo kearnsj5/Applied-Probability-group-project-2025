@@ -6,6 +6,9 @@ print(
     "Analyzing bike availability at commercial stations (morning peak vs off-peak)..."
 )
 
+morning_peak_dict = {}
+off_peak_dict = {}
+
 # office-heavy stations
 commercial_stations = {
     "BLESSINGTON STREET",
@@ -59,9 +62,13 @@ for row in data:
     }
 
     if is_morning_peak:
+        morning_peak_dict[hour * 100 + minute] = morning_peak_dict.get(
+            hour * 100 + minute, 0) + 1
         morning_peak_obs.append(obs)
 
     if is_off_peak:
+        off_peak_dict[hour * 100 +
+                      minute] = off_peak_dict.get(hour * 100 + minute, 0) + 1
         off_peak_obs.append(obs)
 
 
@@ -103,3 +110,45 @@ if result_offpeak is not None:
     )
 else:
     print("\nOff-Peak: No observations found.")
+
+for key in morning_peak_dict:
+    print(f"{key}: {morning_peak_dict[key]}")
+
+for key in off_peak_dict:
+    print(f"{key}: {off_peak_dict[key]}")
+
+morningkeys = list(morning_peak_dict.keys())
+morningvalues = list(morning_peak_dict.values())
+
+x = range(len(morningkeys))
+
+fig, ax = plt.subplots()
+ax.plot(x, morningvalues)
+
+# make nice time labels like "08:00", "08:05", ...
+labels = [f"{k // 100:02d}:{k % 100:02d}" for k in morningkeys]
+ax.set_xticks(x)
+ax.set_xticklabels(labels, rotation=45)
+
+ax.set_title('Morning Peak')
+fig.tight_layout()
+plt.savefig("morningPeak.png")
+plt.close()
+
+offkeys = list(off_peak_dict.keys())
+offvalues = list(off_peak_dict.values())
+
+x = range(len(offkeys))
+
+fig, ax = plt.subplots()
+ax.plot(x, offvalues)
+
+# make nice time labels like "08:00", "08:05", ...
+labels = [f"{k // 100:02d}:{k % 100:02d}" for k in offkeys]
+ax.set_xticks(x)
+ax.set_xticklabels(labels, rotation=45)
+
+ax.set_title('Off Peak')
+fig.tight_layout()
+plt.savefig("offPeak.png")
+plt.close()
