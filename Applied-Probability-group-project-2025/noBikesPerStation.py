@@ -2,7 +2,7 @@ import csv
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-commercial_stations = {
+residential_stations = {
     "BLESSINGTON STREET",
     "CHARLEVILLE ROAD",
     "AVONDALE ROAD",
@@ -30,7 +30,7 @@ for row in data:
   stationName = row[8]
   numberOfBikes = int(row[3])
 
-  if stationName not in commercial_stations:
+  if stationName not in residential_stations:
     continue
 
   timestamp = datetime.strptime(timeStamp, "%Y-%m-%d %H:%M:%S")
@@ -38,12 +38,10 @@ for row in data:
   minute = timestamp.minute
 
   # morning: 08:00-9:35
-  is_morning = (hour == 5) or (hour == 6) or (hour == 7) or (hour == 8) or (
-      hour == 9) or (hour == 10) or (hour == 11) or (hour == 12
-                                                     and minute <= 5)
+  is_morning = (hour == 7) or (hour == 8) or (hour == 9 and minute <= 35)
 
   # afternnon: 13:00–14:35
-  is_allDay = True  #(hour == 13) or (hour == 14 and minute <= 35)
+  is_allDay = True
 
   if minute % 10 != 0:
     newtenmin = True
@@ -105,7 +103,7 @@ ax.set_xticklabels(tick_labels, rotation=45)
 
 ax.set_title('Morning')
 ax.set_xlabel('Time')
-ax.set_ylabel('Number of empty commercial stations')
+ax.set_ylabel('Number of empty residential stations')
 
 fig.tight_layout()
 plt.savefig("Morning.png")
@@ -135,7 +133,7 @@ ax.set_xticklabels(tick_labels, rotation=45)
 
 ax.set_title('All Day')
 ax.set_xlabel('Time')
-ax.set_ylabel('Number of empty commercial stations')
+ax.set_ylabel('Number of empty residential stations')
 
 fig.tight_layout()
 plt.savefig("allDay.png")
