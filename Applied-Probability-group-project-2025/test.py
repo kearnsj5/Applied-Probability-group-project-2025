@@ -53,7 +53,7 @@ for row in data:
     minute = timestamp.minute
     
     
-    is_morning_peak = (hour == 7) or (hour == 9)
+    is_morning_peak = (hour == 7) or (hour == 8) or (hour == 9 and minute <= 30)
     
     
     is_residential = station_name in residential_stations
@@ -74,7 +74,7 @@ if total_observations > 0:
     probability = bikes_available_count / total_observations
     
     
-    print("RESULTS: Morning Peak (7 and 9 am ) at Residential Stations")
+    print("RESULTS: Morning Peak (between 7 and 9.30 am ) at Residential Stations")
     
     print(f"Total observations: {total_observations}")
     print(f"Times with bikes available: {bikes_available_count}")
