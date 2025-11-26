@@ -1,0 +1,63 @@
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# ----------------------------
+# RESIDENTIAL STATIONS LIST
+# ----------------------------
+residential_stations = {
+    "BLESSINGTON STREET",
+    "CHARLEVILLE ROAD",
+    "AVONDALE ROAD",
+    "PHIBSBOROUGH ROAD",
+    "MOUNTJOY SQUARE EAST",
+    "NORTH CIRCULAR ROAD (O'CONNELL'S)",
+    "BROADSTONE",
+    "FENIAN STREET",
+    "CABRA ROAD",
+}
+
+# ----------------------------
+# LOAD + PREPARE DATA
+# ----------------------------
+df = pd.read_csv('dublin-bikes.csv')
+
+# Convert timestamp to datetime
+df['last_reported'] = pd.to_datetime(df['last_reported'], errors='coerce')
+
+# Filter ONLY residential stations
+df_res = df[df['name'].isin(residential_stations)]
+
+# Extract time components
+df_res['hour'] = df_res['last_reported'].dt.hour
+df_res['minute'] = df_res['last_reported'].dt.minute
+
+# Convert time to float (e.g., 8.5 = 8:30 AM)
+df_res['time_float'] = df_res['hour'] + df_res['minute'] / 60
+
+# ----------------------------
+# CALCULATE AVERAGE BIKES AVAILABLE BY TIME OF DAY (ALL DATES)
+# ----------------------------
+avg_bikes_res = (
+    df_res.groupby('time_float')['num_bikes_available']
+    .mean()
+    .sort_index()
+)
+
+# ----------------------------
+# PLOT SPIKE GRAPH
+# ----------------------------
+plt.figure(figsize=(14, 6))
+plt.plot(
+    avg_bikes_res.index,
+    avg_bikes_res.values,
+    color='green',
+    linewidth=1.5
+)
+
+plt.title("Average Bike Availability at Residential Stations (All Days)")
+plt.xlabel("Time of Day (Hours)")
+plt.ylabel("Average Bikes Available")
+plt.grid(True)
+plt.xticks(range(0, 24))
+plt.show()
