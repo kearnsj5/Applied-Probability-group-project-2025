@@ -1,0 +1,134 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ---------------------------------------------
+# 1. LOAD DATA
+# ---------------------------------------------
+df = pd.read_csv("dublin-bikes.csv")
+
+# Convert timestamp column to datetime
+df['last_reported'] = pd.to_datetime(df['last_reported'])
+
+# Extract hour and minute
+df['hour'] = df['last_reported'].dt.hour
+df['minute'] = df['last_reported'].dt.minute
+
+# ---------------------------------------------
+# 2. FILTER TO MORNING PEAK (07:00–09:30)
+# ---------------------------------------------
+df_peak = df[(df["hour"] >= 7) &
+             ((df["hour"] < 9) | ((df["hour"] == 9) & (df["minute"] <= 30)))]
+
+# ---------------------------------------------
+# 3. DEFINE STATION GROUPS
+# ---------------------------------------------
+residential = {
+    "BLESSINGTON STREET",
+    "CHARLEVILLE ROAD",
+    "AVONDALE ROAD",
+    "PHIBSBOROUGH ROAD",
+    "MOUNTJOY SQUARE EAST",
+    "NORTH CIRCULAR ROAD (O'CONNELL'S)",
+    "BROADSTONE",
+    "FENIAN STREET"
+}
+
+non_residential = {
+    "GEORGES QUAY",
+    "CUSTOM HOUSE",
+    "PEARSE STREET",
+    "CITY QUAY",
+    "CLARENDON ROW",
+    "CHRISTCHURCH PLACE",
+    "HIGH STREET",
+    "SMITHFIELD",
+    "ST. STEPHEN'S GREEN EAST",
+    "ST. STEPHEN'S GREEN SOUTH"
+}
+
+# Uppercase station names for matching
+df_peak["name"] = df_peak["name"].str.upper()
+
+df_R = df_peak[df_peak["name"].isin(residential)]
+df_C = df_peak[df_peak["name"].isin(non_residential)]
+
+# ---------------------------------------------
+# 4. POPULATION VALUES
+# ---------------------------------------------
+X_R = df_R["num_bikes_available"].to_numpy()
+X_C = df_C["num_bikes_available"].to_numpy()
+
+N_R = len(X_R)
+N_C = len(X_C)
+
+# ---------------------------------------------
+# 5. POPULATION MEANS
+# ---------------------------------------------
+mu_R = X_R.mean()
+mu_C = X_C.mean()
+
+# ---------------------------------------------
+# 6. POPULATION VARIANCES (divide by N)
+# ---------------------------------------------
+var_R = np.sum((X_R - mu_R)**2) / N_R
+var_C = np.sum((X_C - mu_C)**2) / N_C
+
+std_R = np.sqrt(var_R)
+std_C = np.sqrt(var_C)
+
+# ---------------------------------------------
+# 7. PROBABILITY OF EMPTINESS
+# ---------------------------------------------
+p0_R = np.sum(X_R == 0) / N_R
+p0_C = np.sum(X_C == 0) / N_C
+
+# ---------------------------------------------
+# 8. PRINT RESULTS
+# ---------------------------------------------
+print("\n=== Residential (R) ===")
+print("N_R:", N_R)
+print("Population Mean μ_R:", round(mu_R, 3))
+print("Population Variance σ_R^2:", round(var_R, 3))
+print("Population Std Dev σ_R:", round(std_R, 3))
+print("P(X_R = 0):", round(p0_R, 4))
+
+print("\n=== Non-Residential (C) ===")
+print("N_C:", N_C)
+print("Population Mean μ_C:", round(mu_C, 3))
+print("Population Variance σ_C^2:", round(var_C, 3))
+print("Population Std Dev σ_C:", round(std_C, 3))
+print("P(X_C = 0):", round(p0_C, 4))
+
+# ---------------------------------------------
+# 9. VISUALISATIONS
+# ---------------------------------------------
+
+# Histogram comparison
+plt.figure(figsize=(10,6))
+plt.hist(X_R, bins=20, alpha=0.6, label="Residential", color="steelblue")
+plt.hist(X_C, bins=20, alpha=0.6, label="Non-Residential", color="orange")
+plt.title("Distribution of Available Bikes (07:00–09:30)")
+plt.xlabel("Available Bikes")
+plt.ylabel("Frequency")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.show()
+
+# Boxplot comparison
+plt.figure(figsize=(8,5))
+plt.boxplot([X_R, X_C], labels=["Residential", "Non-Residential"])
+plt.title("Bike Availability Comparison (Boxplot)")
+plt.ylabel("Available Bikes")
+plt.grid(alpha=0.3)
+plt.show()
+
+# Mean comparison bar chart
+plt.figure(figsize=(7,5))
+plt.bar(["Residential", "Non-Residential"], [mu_R, mu_C],
+        color=["steelblue", "orange"])
+plt.title("Population Means of Bike Availability (Morning Peak)")
+plt.ylabel("Mean Bikes Available")
+plt.grid(axis='y', alpha=0.3)
+plt.show()
+
